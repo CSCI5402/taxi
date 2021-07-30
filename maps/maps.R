@@ -33,6 +33,9 @@ feb_counts_data = feb_counts_data %>% left_join(
   by = c('PULocationID' = 'DOLocationID')
 )
 
+# get bounds bounds for map legend and groups (use the same for all 6 maps)
+quantiles = quantile(feb_counts_data$pickup_count)
+
 feb_counts_data$pickup_level = vector("integer", length = dim(feb_counts_data)[1])
 feb_counts_data$dropoff_level = vector("integer", length = dim(feb_counts_data)[1])
 
@@ -172,10 +175,7 @@ for (i in 1:dim(apr_counts_data)[1]) {
 
 nyc_boundary_apr = nyc_boundary %>% left_join(apr_counts_data, by = c('LocationID' = "PULocationID"))
 
-
 ### Maps! ###
-# get bounds bounds for map legend and groups (use the same for all 6 maps)
-quantiles = quantile(feb_counts_data$pickup_count)
 
 map1 = ggplot() + 
   geom_sf(data = nyc_boundary_feb, size = 1, color = "gray") +
