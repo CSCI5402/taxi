@@ -117,9 +117,9 @@ for (i in 1:dim(feb_counts_data)[1]) {
   }
 }
 
-feb_counts_data[feb_counts_data$pickup_level == 0,] = 1
-feb_counts_data[feb_counts_data$dropoff_level == 0,] = 1
-feb_counts_data[order(feb_counts_data$PULocationID),]
+# feb_counts_data[feb_counts_data$pickup_level == 0,] = 1
+# feb_counts_data[feb_counts_data$dropoff_level == 0,] = 1
+# feb_counts_data = feb_counts_data[order(feb_counts_data$PULocationID),]
 
 nyc_boundary_feb = nyc_boundary %>% left_join(feb_counts_data, by = c('LocationID' = "PULocationID"))
 
@@ -156,9 +156,9 @@ for (i in 1:dim(mar_counts_data)[1]) {
   }
 }
 
-mar_counts_data[mar_counts_data$pickup_level == 0,] = 1
-mar_counts_data[mar_counts_data$dropoff_level == 0,] = 1
-mar_counts_data[order(mar_counts_data$PULocationID),]
+# mar_counts_data[mar_counts_data$pickup_level == 0,] = 1
+# mar_counts_data[mar_counts_data$dropoff_level == 0,] = 1
+# mar_counts_data = mar_counts_data[order(mar_counts_data$PULocationID),]
 
 nyc_boundary_mar = nyc_boundary %>% left_join(mar_counts_data, by = c('LocationID' = "PULocationID"))
 
@@ -193,9 +193,9 @@ for (i in 1:dim(apr_counts_data)[1]) {
   }
 }
 
-apr_counts_data[apr_counts_data$pickup_level == 0,] = 1
-apr_counts_data[apr_counts_data$dropoff_level == 0,] = 1
-apr_counts_data[order(apr_counts_data$PULocationID),]
+# apr_counts_data[apr_counts_data$pickup_level == 0,] = 1
+# apr_counts_data[apr_counts_data$dropoff_level == 0,] = 1
+# apr_counts_data = apr_counts_data[order(apr_counts_data$PULocationID),]
 
 nyc_boundary_apr = nyc_boundary %>% left_join(apr_counts_data, by = c('LocationID' = "PULocationID"))
 
@@ -259,7 +259,7 @@ map4 = ggplot() +
     na.value = "grey50",
     labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
-  theme(legend.position = "none")
+  theme(legend.position = "right")
 
 map5 = ggplot() + 
   geom_sf(data = nyc_boundary_apr, size = 1, color = "gray") +
@@ -274,7 +274,7 @@ map5 = ggplot() +
     na.value = "grey50",
     labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
-  theme(legend.position = "right")
+  theme(legend.position = "none")
 
 map6 = ggplot() + 
   geom_sf(data = nyc_boundary_apr, size = 1, color = "gray") +
@@ -289,7 +289,7 @@ map6 = ggplot() +
     na.value = "grey50",
     labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
-  theme(legend.position = "right")
+  theme(legend.position = "none")
 
 ## GG arrage it or something
 grid.arrange(map1, map3, map5, map2, map4, map6, ncol = 3)
