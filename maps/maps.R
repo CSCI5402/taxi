@@ -4,6 +4,7 @@ library(gapminder)
 library(sf)
 library(ggmap)
 library(ggplot2)
+library(hrbrthemes)
 library(dplyr)
 library(tidyr)
 library(grid)
@@ -176,7 +177,7 @@ for (i in 1:dim(mar_counts_data)[1]) {
 
 # mar_counts_data[mar_counts_data$pickup_level == 0,] = 1
 # mar_counts_data[mar_counts_data$dropoff_level == 0,] = 1
-mar_counts_data = mar_counts_data[order(mar_counts_data$PULocationID),]
+mar_counts_data = mar_counts_data[order(mar_counts_data$LocationID),]
 
 nyc_boundary_mar = nyc_boundary %>% left_join(mar_counts_data)
 
@@ -282,7 +283,7 @@ map4 = ggplot() +
     na.value = "grey50",
     # labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
-  theme(legend.position = "right")
+  theme(legend.position = "bottom")
 
 map5 = ggplot() + 
   geom_sf(data = nyc_boundary, size = 1, color = "gray") +
@@ -318,43 +319,74 @@ map6 = ggplot() +
 
 grid.arrange(map1, map3, map5, map2, map4, map6, ncol = 3)
 
-
 #binned data
+feb_20_bins = feb_20 %>%
+  mutate(time = ymd_hms(tpep_pickup_datetime)) %>%
+  group_by(PULocationID, time = floor_date(time, "1 day")) %>%
+  summarise(counts = n()) %>%
+  filter(time >= as.Date("2020-02-01")) %>%
+  filter(time <= as.Date("2020-02-29"))
+
+mar_20_bins = mar_20 %>%
+  mutate(time = ymd_hms(tpep_pickup_datetime)) %>%
+  group_by(PULocationID, time = floor_date(time, "1 day")) %>%
+  summarise(counts = n()) %>%
+  filter(time >= as.Date("2020-03-01")) %>%
+  filter(time <= as.Date("2020-03-31"))
+
 apr_20_bins = apr_20 %>%
   mutate(time = ymd_hms(tpep_pickup_datetime)) %>%
-  group_by(PULocationID, time = floor_date(time, "30 min")) %>%
-  summarise(mean_fare = mean(fare_amount)) %>%
-  filter(time >= as.Date("2020-04-01"))
+  group_by(PULocationID, time = floor_date(time, "1 day")) %>%
+  summarise(counts = n()) %>%
+  filter(time >= as.Date("2020-04-01")) %>%
+  filter(time <= as.Date("2020-04-30"))
 
-temp %>%
-  ggplot(aes(time, mean_fare)) +
+# Animation
+data = rbind(feb_20_bins, mar_20_bins, apr_20_bins) %>% 
+  filter(PULocationID %in% c(161, 237, 236, 162, 230, 186, 234, 170, 48, 142))
+
+for (i in 1:dim(data)[1]) {
+  if (data$PULocationID[i] == 161) {
+    data$location[i] = "Midtown Center"
+    
+  } else if (data$PULocationID[i] == 237) {
+    data$location[i] = "Upper East Side South"
+    
+  } else if (data$PULocationID[i] == 236) {
+    data$location[i] = "Upper East Side North"
+    
+  } else if (data$PULocationID[i] == 162) {
+    data$location[i] = "Midtown East"
+    
+  } else if (data$PULocationID[i] == 230) {
+    data$location[i] = "Time Square"
+    
+  } else if (data$PULocationID[i] == 186) {
+    data$location[i] = "Penn Station"
+    
+  } else if (data$PULocationID[i] == 234) {
+    data$location[i] = "Union Square"
+    
+  } else if (data$PULocationID[i] == 170) {
+    data$location[i] = "Murray Hill"
+    
+  } else if (data$PULocationID[i] == 48) {
+    data$location[i] = "Clinton East"
+    
+  } else if (data$PULocationID[i] == 142) {
+    data$location[i] = "Lincoln Square East"
+    
+  }
+}
+
+# Plot
+data %>%
+  ggplot( aes(x=time, y=counts, group=location, color=location)) +
   geom_line() +
-  facet_wrap(~PULocationID)
+  # geom_point() +
+  ggtitle("Number of Taxi Rides in the top 10 districts in NYC (Feb 2020-Apr 2020)") +
+  ylab("Number of Taxi Rides") +
+  xlab("Time (days)") +
+  transition_reveal(time)
 
-# Animated Chart
-# Make a ggplot, but add frame=year: one image per year
-ggplot(apr_20_bins, aes(time, mean_fare, size = pop, colour = country)) +
-  geom_point(alpha = 0.7, show.legend = FALSE) +
-  scale_colour_manual(values = country_colors) +
-  scale_size(range = c(2, 12)) +
-  scale_x_log10() +
-  facet_wrap(~continent) +
-  # Here comes the gganimate specific bits
-  labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'life expectancy') +
-  transition_time(year) +
-  ease_aes('linear')
-
-anim_save("271-ggplot2-animated-gif-chart-with-gganimate2.gif")
-
-# fare amount map
-ggplot() + 
-  geom_sf(data = nyc_boundary, size = 1, color = "gray")
-
-
-ggplot(apr_20_bins, aes(gdpPercap, lifeExp, size = pop, colour = country)) +
-  geom_point(alpha = 0.7, show.legend = FALSE) +
-  scale_colour_manual(values = country_colors) +
-  scale_size(range = c(2, 12)) +
-  scale_x_log10() +
-  facet_wrap(~continent) +
-  labs(title = 'Year: 1952-2007', x = 'GDP per capita', y = 'Life expectancy')
+anim_save("rides.gif")
