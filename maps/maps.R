@@ -1,6 +1,6 @@
 ####################### New York Map ##########################
-
-### Libraries ###
+# Libraries
+library(gapminder)
 library(sf)
 library(ggmap)
 library(ggplot2)
@@ -8,6 +8,7 @@ library(dplyr)
 library(tidyr)
 library(grid)
 library(lattice)
+library(lubridate)
 library(gridExtra)
 library(hms)
 library(gganimate)
@@ -20,11 +21,15 @@ nyc_boundary = st_read("../shapefiles/taxi_zones.shp")
 
 # add counts
 ### February ###
-feb_counts_data = feb_20 %>%
-  group_by(PULocationID) %>%
-  mutate(pickup_count = n()) %>%
-  select(PULocationID, pickup_count) %>%
-  unique() 
+feb_counts_data = data.frame('LocationID' = 1:263)
+feb_counts_data = feb_counts_data %>% left_join(
+  feb_20 %>%
+    group_by(PULocationID) %>%
+    mutate(pickup_count = n()) %>%
+    select(PULocationID, pickup_count) %>%
+    unique(),
+  by = c('LocationID' = 'PULocationID')
+)
 
 feb_counts_data = feb_counts_data %>% left_join(
   feb_20 %>%
@@ -32,17 +37,21 @@ feb_counts_data = feb_counts_data %>% left_join(
     mutate(dropoff_count = n()) %>%
     select(DOLocationID, dropoff_count) %>%
     unique(),
-  by = c('PULocationID' = 'DOLocationID')
+  by = c('LocationID' = 'DOLocationID')
 )
 
-feb_counts_data$pickup_level = vector("integer", length = dim(feb_counts_data)[1])
-feb_counts_data$dropoff_level = vector("integer", length = dim(feb_counts_data)[1])
+feb_counts_data$pickup_level = vector("integer", length = dim(nyc_boundary)[1])
+feb_counts_data$dropoff_level = vector("integer", length = dim(nyc_boundary)[1])
 
-mar_counts_data = mar_20 %>%
-  group_by(PULocationID) %>%
-  mutate(pickup_count = n()) %>%
-  select(PULocationID, pickup_count) %>%
-  unique()
+mar_counts_data = data.frame('LocationID' = 1:263)
+mar_counts_data = mar_counts_data %>% left_join(
+  mar_20 %>%
+    group_by(PULocationID) %>%
+    mutate(pickup_count = n()) %>%
+    select(PULocationID, pickup_count) %>%
+    unique(),
+  by = c('LocationID' = 'PULocationID')
+)
 
 mar_counts_data = mar_counts_data %>% left_join(
   mar_20 %>%
@@ -50,17 +59,21 @@ mar_counts_data = mar_counts_data %>% left_join(
     mutate(dropoff_count = n()) %>%
     select(DOLocationID, dropoff_count) %>%
     unique(),
-  by = c('PULocationID' = 'DOLocationID')
+  by = c('LocationID' = 'DOLocationID')
 )
 
-mar_counts_data$pickup_level = vector("integer", length = dim(mar_counts_data)[1])
-mar_counts_data$dropoff_level = vector("integer", length = dim(mar_counts_data)[1])
+mar_counts_data$pickup_level = vector("integer", length = dim(nyc_boundary)[1])
+mar_counts_data$dropoff_level = vector("integer", length = dim(nyc_boundary)[1])
 
-apr_counts_data = apr_20 %>%
-  group_by(PULocationID) %>%
-  mutate(pickup_count = n()) %>%
-  select(PULocationID, pickup_count) %>%
-  unique
+apr_counts_data = data.frame('LocationID' = 1:263)
+apr_counts_data = apr_counts_data %>% left_join(
+  apr_20 %>%
+    group_by(PULocationID) %>%
+    mutate(pickup_count = n()) %>%
+    select(PULocationID, pickup_count) %>%
+    unique(),
+  by = c('LocationID' = 'PULocationID')
+)
 
 apr_counts_data = apr_counts_data %>% left_join(
   apr_20 %>%
@@ -68,20 +81,23 @@ apr_counts_data = apr_counts_data %>% left_join(
     mutate(dropoff_count = n()) %>%
     select(DOLocationID, dropoff_count) %>%
     unique(),
-  by = c('PULocationID' = 'DOLocationID')
+  by = c('LocationID' = 'DOLocationID')
 )
 
-apr_counts_data$pickup_level = vector("integer", length = dim(apr_counts_data)[1])
-apr_counts_data$dropoff_level = vector("integer", length = dim(apr_counts_data)[1])
+apr_counts_data$pickup_level = vector("integer", length = dim(nyc_boundary)[1])
+apr_counts_data$dropoff_level = vector("integer", length = dim(nyc_boundary)[1])
 
 # get bounds bounds for map legend and groups (use the same for all 6 maps)
+feb_counts_data[is.na(feb_counts_data)] = 1
+mar_counts_data[is.na(mar_counts_data)] = 1
+apr_counts_data[is.na(apr_counts_data)] = 1
+
 pickup_quantiles_feb = quantile(feb_counts_data$pickup_count) 
 pickup_quantiles_mar = quantile(mar_counts_data$pickup_count)
 pickup_quantiles_apr = quantile(apr_counts_data$pickup_count)
 mean_pickup_quantiles = (pickup_quantiles_apr + pickup_quantiles_mar + pickup_quantiles_feb) / 3
 
 dropoff_quantiles_feb = quantile(feb_counts_data$dropoff_count)
-mar_counts_data[is.na(mar_counts_data)] = 0
 dropoff_quantiles_mar = quantile(mar_counts_data$dropoff_count)
 dropoff_quantiles_apr = quantile(apr_counts_data$dropoff_count)
 mean_dropoff_quantiles = (dropoff_quantiles_apr + dropoff_quantiles_mar + dropoff_quantiles_feb) / 3
@@ -97,8 +113,9 @@ for (i in 1:dim(feb_counts_data)[1]) {
   } else if (feb_counts_data$pickup_count[i] > mean_pickup_quantiles[3] && feb_counts_data$pickup_count[i] <= mean_pickup_quantiles[4]) {
     feb_counts_data$pickup_level[i] = 3
     
-  } else if (feb_counts_data$pickup_count[i] > mean_pickup_quantiles[4] && feb_counts_data$pickup_count[i] <= mean_pickup_quantiles[5]) {
-    feb_counts_data$pickup_level[i] = 4  
+  } else if (feb_counts_data$pickup_count[i] > mean_pickup_quantiles[4]) {
+    feb_counts_data$pickup_level[i] = 4
+    
   }
 }
 
@@ -112,16 +129,16 @@ for (i in 1:dim(feb_counts_data)[1]) {
   } else if (feb_counts_data$dropoff_count[i] > mean_dropoff_quantiles[3] && feb_counts_data$dropoff_count[i] <= mean_dropoff_quantiles[4]) {
     feb_counts_data$dropoff_level[i] = 3
     
-  } else if (feb_counts_data$dropoff_count[i] > mean_dropoff_quantiles[4] && feb_counts_data$dropoff_count[i] <= mean_dropoff_quantiles[5]) {
+  } else if (feb_counts_data$dropoff_count[i] > mean_dropoff_quantiles[4]) {
     feb_counts_data$dropoff_level[i] = 4  
   }
 }
 
 # feb_counts_data[feb_counts_data$pickup_level == 0,] = 1
 # feb_counts_data[feb_counts_data$dropoff_level == 0,] = 1
-# feb_counts_data = feb_counts_data[order(feb_counts_data$PULocationID),]
+feb_counts_data = feb_counts_data[order(feb_counts_data$LocationID),]
 
-nyc_boundary_feb = nyc_boundary %>% left_join(feb_counts_data, by = c('LocationID' = "PULocationID"))
+nyc_boundary_feb = nyc_boundary %>% left_join(feb_counts_data)
 
 ### March ###
 
@@ -136,8 +153,8 @@ for (i in 1:dim(mar_counts_data)[1]) {
   } else if (mar_counts_data$pickup_count[i] > mean_pickup_quantiles[3] && mar_counts_data$pickup_count[i] <= mean_pickup_quantiles[4]) {
     mar_counts_data$pickup_level[i] = 3
     
-  } else if (mar_counts_data$pickup_count[i] > mean_pickup_quantiles[4] && mar_counts_data$pickup_count[i] <= mean_pickup_quantiles[5]) {
-    mar_counts_data$pickup_level[i] = 4  
+  } else if (mar_counts_data$dropoff_count[i] > mean_dropoff_quantiles[4]) {
+    mar_counts_data$pickup_level[i] = 4
   }
 }
 
@@ -151,16 +168,17 @@ for (i in 1:dim(mar_counts_data)[1]) {
   } else if (mar_counts_data$dropoff_count[i] > mean_dropoff_quantiles[3] && mar_counts_data$dropoff_count[i] <= mean_dropoff_quantiles[4]) {
     mar_counts_data$dropoff_level[i] = 3
     
-  } else if (mar_counts_data$dropoff_count[i] > mean_dropoff_quantiles[4] && mar_counts_data$dropoff_count[i] <= mean_dropoff_quantiles[5]) {
-    mar_counts_data$dropoff_level[i] = 4  
+  } else if (mar_counts_data$dropoff_count[i] > mean_dropoff_quantiles[4]) {
+    mar_counts_data$dropoff_level[i] = 4
+    
   }
 }
 
 # mar_counts_data[mar_counts_data$pickup_level == 0,] = 1
 # mar_counts_data[mar_counts_data$dropoff_level == 0,] = 1
-# mar_counts_data = mar_counts_data[order(mar_counts_data$PULocationID),]
+mar_counts_data = mar_counts_data[order(mar_counts_data$PULocationID),]
 
-nyc_boundary_mar = nyc_boundary %>% left_join(mar_counts_data, by = c('LocationID' = "PULocationID"))
+nyc_boundary_mar = nyc_boundary %>% left_join(mar_counts_data)
 
 ### April ###
 for (i in 1:dim(apr_counts_data)[1]) {
@@ -173,8 +191,8 @@ for (i in 1:dim(apr_counts_data)[1]) {
   } else if (apr_counts_data$pickup_count[i] > mean_pickup_quantiles[3] && apr_counts_data$pickup_count[i] <= mean_pickup_quantiles[4]) {
     apr_counts_data$pickup_level[i] = 3
     
-  } else if (apr_counts_data$pickup_count[i] > mean_pickup_quantiles[4] && apr_counts_data$pickup_count[i] <= mean_pickup_quantiles[5]) {
-    apr_counts_data$pickup_level[i] = 4  
+  } else if (apr_counts_data$pickup_count[i] > mean_pickup_quantiles[4]) {
+    apr_counts_data$pickup_level[i] = 4
   }
 }
 
@@ -188,124 +206,155 @@ for (i in 1:dim(apr_counts_data)[1]) {
   } else if (apr_counts_data$dropoff_count[i] > mean_dropoff_quantiles[3] && apr_counts_data$dropoff_count[i] <= mean_dropoff_quantiles[4]) {
     apr_counts_data$dropoff_level[i] = 3
     
-  } else if (apr_counts_data$dropoff_count[i] > mean_dropoff_quantiles[4] && apr_counts_data$dropoff_count[i] <= mean_dropoff_quantiles[5]) {
-    apr_counts_data$dropoff_level[i] = 4  
+  } else if (apr_counts_data$dropoff_count[i] > mean_dropoff_quantiles[4]) {
+    apr_counts_data$dropoff_level[i] = 4
   }
 }
 
 # apr_counts_data[apr_counts_data$pickup_level == 0,] = 1
 # apr_counts_data[apr_counts_data$dropoff_level == 0,] = 1
-# apr_counts_data = apr_counts_data[order(apr_counts_data$PULocationID),]
+apr_counts_data = apr_counts_data[order(apr_counts_data$LocationID),]
 
-nyc_boundary_apr = nyc_boundary %>% left_join(apr_counts_data, by = c('LocationID' = "PULocationID"))
+nyc_boundary_apr = nyc_boundary %>% left_join(apr_counts_data)
 
 ### Maps! ###
+limits = c(0, max(feb_counts_data$pickup_count))
 
 map1 = ggplot() + 
-  geom_sf(data = nyc_boundary_feb, size = 1, color = "gray") +
-  geom_sf(data = nyc_boundary_feb, aes(fill = pickup_level)) +
+  geom_sf(data = nyc_boundary, size = 1, color = "gray") +
+  geom_sf(data = nyc_boundary, aes(fill = feb_counts_data$pickup_count)) +
   ggtitle("Pickup February 2020") +
   coord_sf() +
   scale_fill_continuous(
     name = "Counts",
-    low = "green",
+    low = "yellow",
     high = "red",
-    limits = c(0, 4),
+    limits = limits,
+    # breaks = breaks,
     na.value = "grey50",
-    labels = c("Min", "25%", "Median", "75%", "Max")
+    # labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
   theme(legend.position = "none")
 
 map2 = ggplot() + 
-  geom_sf(data = nyc_boundary_feb, size = 1, color = "gray") +
-  geom_sf(data = nyc_boundary_feb, aes(fill = dropoff_level)) +
+  geom_sf(data = nyc_boundary, size = 1, color = "gray") +
+  geom_sf(data = nyc_boundary, aes(fill = feb_counts_data$dropoff_count)) +
   ggtitle("Dropoff February 2020") +
   coord_sf() +
   scale_fill_continuous(
     name = "Counts",
-    low = "green",
+    low = "yellow",
     high = "red",
-    limits = c(0, 4),
+    limits = limits,
+    # breaks = breaks,
     na.value = "grey50",
-    labels = c("Min", "25%", "Median", "75%", "Max")
+    # labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
   theme(legend.position = "none")
 
 map3 = ggplot() + 
-  geom_sf(data = nyc_boundary_mar, size = 1, color = "gray") +
-  geom_sf(data = nyc_boundary_mar, aes(fill = pickup_level)) +
+  geom_sf(data = nyc_boundary, size = 1, color = "gray") +
+  geom_sf(data = nyc_boundary, aes(fill = mar_counts_data$pickup_count)) +
   ggtitle("Pickup March 2020") +
   coord_sf() +
   scale_fill_continuous(
     name = "Counts",
-    low = "green",
+    low = "yellow",
     high = "red",
-    limits = c(0, 4),
+    limits = limits,
+    # breaks = breaks,
     na.value = "grey50",
-    labels = c("Min", "25%", "Median", "75%", "Max")
+    # labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
   theme(legend.position = "none")
 
 map4 = ggplot() + 
-  geom_sf(data = nyc_boundary_mar, size = 1, color = "gray") +
-  geom_sf(data = nyc_boundary_mar, aes(fill = dropoff_level)) +
+  geom_sf(data = nyc_boundary, size = 1, color = "gray") +
+  geom_sf(data = nyc_boundary, aes(fill = mar_counts_data$dropoff_count)) +
   ggtitle("Dropoff March 2020") +
   coord_sf() +
   scale_fill_continuous(
     name = "Counts",
-    low = "green",
+    low = "yellow",
     high = "red",
-    limits = c(0, 4),
+    limits = limits,
+    # breaks = breaks,
     na.value = "grey50",
-    labels = c("Min", "25%", "Median", "75%", "Max")
+    # labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
   theme(legend.position = "right")
 
 map5 = ggplot() + 
-  geom_sf(data = nyc_boundary_apr, size = 1, color = "gray") +
-  geom_sf(data = nyc_boundary_apr, aes(fill = pickup_level)) +
+  geom_sf(data = nyc_boundary, size = 1, color = "gray") +
+  geom_sf(data = nyc_boundary, aes(fill = apr_counts_data$pickup_count)) +
   ggtitle("Pickup April 2020") +
   coord_sf() +
   scale_fill_continuous(
     name = "Counts",
-    low = "green",
+    low = "yellow",
     high = "red",
-    limits = c(0, 4),
+    limits = limits,
+    # breaks = breaks,
     na.value = "grey50",
-    labels = c("Min", "25%", "Median", "75%", "Max")
+    # labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
   theme(legend.position = "none")
 
 map6 = ggplot() + 
-  geom_sf(data = nyc_boundary_apr, size = 1, color = "gray") +
-  geom_sf(data = nyc_boundary_apr, aes(fill = dropoff_level)) +
+  geom_sf(data = nyc_boundary, size = 1, color = "gray") +
+  geom_sf(data = nyc_boundary, aes(fill = apr_counts_data$dropoff_count)) +
   ggtitle("Dropoff April 2020") +
   coord_sf() +
   scale_fill_continuous(
     name = "Counts",
-    low = "green",
+    low = "yellow",
     high = "red",
-    limits = c(0, 4),
+    limits = limits,
+    # breaks = breaks,
     na.value = "grey50",
-    labels = c("Min", "25%", "Median", "75%", "Max")
+    # labels = c("Min", "25%", "Median", "75%", "Max")
   ) + 
   theme(legend.position = "none")
 
-## GG arrage it or something
 grid.arrange(map1, map3, map5, map2, map4, map6, ncol = 3)
 
-# animated map
-ggplot(data = apr_20[1:50000,], mapping = aes(tpep_pickup_datetime, fare_amount)) +
-  geom_line()
 
-################################### 
-# Fix!!
+#binned data
+apr_20_bins = apr_20 %>%
+  mutate(time = ymd_hms(tpep_pickup_datetime)) %>%
+  group_by(PULocationID, time = floor_date(time, "30 min")) %>%
+  summarise(mean_fare = mean(fare_amount)) %>%
+  filter(time >= as.Date("2020-04-01"))
 
-p <- ggplot(apr_20, aes(x = fare_amount, y = PULocationID, size = pop, colour = country)
-) +
-  geom_point(show.legend = FALSE, alpha = 0.7) +
-  scale_color_viridis_d() +
+temp %>%
+  ggplot(aes(time, mean_fare)) +
+  geom_line() +
+  facet_wrap(~PULocationID)
+
+# Animated Chart
+# Make a ggplot, but add frame=year: one image per year
+ggplot(apr_20_bins, aes(time, mean_fare, size = pop, colour = country)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  scale_colour_manual(values = country_colors) +
   scale_size(range = c(2, 12)) +
   scale_x_log10() +
-  labs(x = "GDP per capita", y = "Life expectancy")
-p
+  facet_wrap(~continent) +
+  # Here comes the gganimate specific bits
+  labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'life expectancy') +
+  transition_time(year) +
+  ease_aes('linear')
+
+anim_save("271-ggplot2-animated-gif-chart-with-gganimate2.gif")
+
+# fare amount map
+ggplot() + 
+  geom_sf(data = nyc_boundary, size = 1, color = "gray")
+
+
+ggplot(apr_20_bins, aes(gdpPercap, lifeExp, size = pop, colour = country)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  facet_wrap(~continent) +
+  labs(title = 'Year: 1952-2007', x = 'GDP per capita', y = 'Life expectancy')
