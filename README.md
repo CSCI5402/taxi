@@ -1,7 +1,7 @@
 # taxi
 New York City taxi data
 
-![Alt Text](https://github.com/CSCI5402/taxi/edit/main/maps/rides.gif)
+![Alt Text](https://github.com/CSCI5402/taxi/blob/main/maps/rides.gif?raw=true)
 
 (C) Joseph Froelicher, Thomas Guess, Michael Huffman  
 CSPB 5402 - University of Colorado - Computer Science
