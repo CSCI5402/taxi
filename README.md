@@ -1,6 +1,8 @@
 # taxi
 New York City taxi data
 
+![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif)
+
 (C) Joseph Froelicher, Thomas Guess, Michael Huffman  
 CSPB 5402 - University of Colorado - Computer Science
 
