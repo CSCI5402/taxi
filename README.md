@@ -1,7 +1,7 @@
 # taxi
 New York City taxi data
 
-(C) Joseph Froelicher, Thomas Guess, Michael Huffman
+(C) Joseph Froelicher, Thomas Guess, Michael Huffman  
 CSPB 5402 - University of Colorado - Computer Science
 
 Data available from:
