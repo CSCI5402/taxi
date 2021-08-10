@@ -17,7 +17,7 @@ library(gganimate)
 ### Data and Polygons ###
 feb_20 = read.csv("../data/yellow_tripdata_2020-02.csv")
 mar_20 = read.csv("../data/yellow_tripdata_2020-03.csv")
-apr_20 = read.csv("../data/yellow_tripdata_2020-04.csv")
+apr_20 = read.csv("../data/yellow_tripdata_2020-04.csv?")
 nyc_boundary = st_read("../shapefiles/taxi_zones.shp")
 
 # add counts
@@ -102,7 +102,6 @@ dropoff_quantiles_feb = quantile(feb_counts_data$dropoff_count)
 dropoff_quantiles_mar = quantile(mar_counts_data$dropoff_count)
 dropoff_quantiles_apr = quantile(apr_counts_data$dropoff_count)
 mean_dropoff_quantiles = (dropoff_quantiles_apr + dropoff_quantiles_mar + dropoff_quantiles_feb) / 3
-
 
 for (i in 1:dim(feb_counts_data)[1]) {
   if (feb_counts_data$pickup_count[i] <= mean_pickup_quantiles[2]) {
@@ -383,10 +382,20 @@ for (i in 1:dim(data)[1]) {
 data %>%
   ggplot( aes(x=time, y=counts, group=location, color=location)) +
   geom_line() +
-  # geom_point() +
+  geom_point() +
   ggtitle("Number of Taxi Rides in the top 10 districts in NYC (Feb 2020-Apr 2020)") +
-  ylab("Number of Taxi Rides") +
+  ylab("Daily Number of Taxi Rides") +
   xlab("Time (days)") +
+  scale_colour_brewer(name = "Pick-up Taxi District", palette = "Spectral")
+
+data %>%
+  ggplot( aes(x=time, y=counts, group=location, color=location)) +
+  geom_line() +
+  geom_point() +
+  ggtitle("Number of Taxi Rides in the top 10 districts in NYC (Feb 2020-Apr 2020)") +
+  ylab("Daily Number of Taxi Rides") +
+  xlab("Time (days)") +
+  scale_colour_brewer(name = "Pick-up Taxi District", palette = "Spectral") +
   transition_reveal(time)
 
 anim_save("rides.gif")
