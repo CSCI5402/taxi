@@ -21,6 +21,7 @@ The repository is organized as follows:
 ### Ride Information
 
 ### COVID-19
+We were interested in visualizing the impact of COVID-19 on yellow-cab travel in New York City. This was done best by using maps, and additionally a plot of ride trends (pictured above). The lockdown clearly had significant impact on travel in the city, and this of course affects yellow cab data. The code for visualization for the yellow-cab data is housed in \maps.
 
 ### Financial
 The most interesting questions from a financial perspective had to do with tipping. In a nutshell, the research could be described with the following question: which factors were connected with higher tipping? Our analysis yielded several interesting results. First, airports tended to have high tips relative to the rest of the locations. While this was partially due to a higher ratecode, we also found that these locations had a higher tip amount as a percentage of the total fare. From here, we discovered that the most popular locations also tipped the most - a result that may be tied to better service or more well-known tip etiquette. More details are found in the project paper.
