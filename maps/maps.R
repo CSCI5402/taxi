@@ -382,8 +382,7 @@ for (i in 1:dim(data)[1]) {
 data %>%
   ggplot( aes(x=time, y=counts, group=location, color=location)) +
   geom_line() +
-  geom_point() +
-  ggtitle("Number of Taxi Rides in the top 10 districts in NYC (Feb 2020-Apr 2020)") +
+  ggtitle("Rides in the top 10 districts in NYC (Feb 2020-Apr 2020)") +
   ylab("Daily Number of Taxi Rides") +
   xlab("Time (days)") +
   scale_colour_brewer(name = "Pick-up Taxi District", palette = "Spectral")
