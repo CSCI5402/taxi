@@ -33,6 +33,7 @@ The applications of this are quite rich, especially if tips do in fact serve as 
 https://github.com/CSCI5402/taxi/blob/main/Group5_NewYorkCityTaxis_Part6_video.mp4
 
 ## Link to Final Paper
+https://github.com/CSCI5402/taxi/blob/main/Group5_NewYorkCityTaxis_Part4.pdf
 
 
 
