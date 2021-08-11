@@ -1,10 +1,9 @@
 '''
+This code is what was used for much of the financial analysis. It's best run in the shell - there is no gui or anything of the sort. I have included some sample code down below.
 
-This code is a mess - it currently doesn't have console support; I just do things down below. I will clean this up in the future, and improve documentation.
-
+Each of these functions is something I used during the datamining process. There is an explanation for each one.
 
 Written by Tommy Guess
-
 
 '''
 
@@ -14,6 +13,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
+
+from sklearn.cluster import KMeans
 from time import time
 from datetime import datetime
 
@@ -86,7 +87,7 @@ def clean(df):
 
 def zscore_normalization(pd_attribute):
     '''
-    From one of the homework problems, currently unused
+    From one of the homework problems
     '''
 
     avg = mean(pd_attribute)
@@ -142,7 +143,7 @@ def correlMatrix(DF,attributeList=['VendorID', 'trip_time','passenger_count','tr
 
 def pickup_dropoff_matrix(DF):
     '''
-    Calculates a matrix with the total number of trips for pickup/dropoff - a simple count. This is not currently designed for arbitrary attributes, and I will extend it.
+    Calculates a matrix with the total number of trips for pickup/dropoff - a simple count.
     '''
     
     numberList = range(1,266) # max number of location IDs
@@ -171,12 +172,12 @@ def pickup_dropoff_matrix(DF):
 def pickupTip(DF):
     '''
     Calculates basic stats for the tips by pickup ID.
-    This (and the next function) will be replaced by a more powerful function in the near future. 
+    This (and the next function) are somewhat hacky in the sense that they are not modular, but it does the job.
     
     '''
     
     numberList = range(1,266)
-    cols = ['minTip','meanTip','maxTip','medianTip']
+    cols = ['minTip','meanTip','maxTip','medianTip','minFare','meanFare','maxFare','medianFare','Count']
     tipDF = pd.DataFrame(index = numberList, columns = cols)
 
     for i in range(1,266):
@@ -188,6 +189,15 @@ def pickupTip(DF):
         tipDF.at[i,'meanTip'] = tipAtt.mean()
         tipDF.at[i,'maxTip'] = tipAtt.max()
         tipDF.at[i,'medianTip'] = tipAtt.median()
+        tipDF.at[i,'Count'] = tipAtt.count()
+
+        totalAtt = rows['total_amount']
+
+        tipDF.at[i,'minFare'] = (totalAtt-tipAtt).min()
+        tipDF.at[i,'meanFare'] = (totalAtt-tipAtt).mean()
+        tipDF.at[i,'maxFare'] = (totalAtt-tipAtt).max()
+        tipDF.at[i,'medianFare'] = (totalAtt-tipAtt).median()
+
             
     return tipDF
 
@@ -198,7 +208,7 @@ def dropoffTip(DF):
     
     '''
     numberList = range(1,266)
-    cols = ['minTip','meanTip','maxTip','medianTip']
+    cols = ['minTip','meanTip','maxTip','medianTip','Count']
     tipDF = pd.DataFrame(index = numberList, columns = cols)
 
     for i in range(1,266):
@@ -210,8 +220,21 @@ def dropoffTip(DF):
         tipDF.at[i,'meanTip'] = tipAtt.mean()
         tipDF.at[i,'maxTip'] = tipAtt.max()
         tipDF.at[i,'medianTip'] = tipAtt.median()
+        tipDF.at[i,'Count'] = tipAtt.count()
             
     return tipDF
+
+def KMeans(DF,att1,att2):
+    # using this website as help: https://datatofish.com/k-means-clustering-python/
+    df1 = DF[[att1,att2]]
+    kmeans = KMeans().fit(df1)
+    centroids = kmeans.cluster_centers_
+    print(centroids)
+
+    
+    #plt.scatter(df['x'], df['y'], c= kmeans.labels_.astype(float), s=50, alpha=0.5)
+    #plt.scatter(centroids[:, 0], centroids[:, 1], c='red', s=50)
+    #plt.show()
 
 
 
@@ -244,9 +267,13 @@ DF = pd.read_csv(filename)
 
 #correlMatrix(DF,attributeList)
 #locDF = pickup_dropoff_matrix(DF)
-#pickupTipMtx = pickupTip(DF)
+pickupTipMtx = pickupTip(DF)
+pickupTipMtx.to_csv('pickupTipMtx_data.csv')
 
-dropoffTipMtx = dropoffTip(DF)
+
+#dropoffTipMtx = dropoffTip(DF)
+
+#KMeans(DF,'tip_amount','total_amount')
 
 timeEnd = time()
 print("total time: {}".format(timeEnd-timeStart))
